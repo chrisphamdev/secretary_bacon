@@ -194,12 +194,34 @@ async def say(ctx, *, words):
 async def rank_solo(ctx, *, username):
     profile = get_profile(username)
     
-    embed=discord.Embed(title="Solo rank query ", color=0x0db1e7)
-    embed.add_field(name="summoner_name", value="values", inline=False)
+    summoners_icon, rank_solo, win, loss, winrate = get_solo_rank(profile)
+
+    ranked_solo_line = '\n\n\nRanked Solo: {0:<10}\n\n'.format(rank_solo)
+    win_loss_line = '\n\n\nWin - Loss: {}W {}L\n\n'.format(win, loss)
+    winrate_line = 'Winrate: {0:>20}%\n\n'.format(winrate)
+
+    comment = '\n\n'
+    if winrate < 46:
+        comment = 'Winrate thấp, rác vcl'
+    if winrate >= 46 and winrate < 49:
+        comment = 'Dưới trung bình, còn cần cố gắng'
+    if winrate >=49 and winrate < 52:
+        comment = 'Winrate trung bình, không có gì đặc sắc'
+    if winrate >= 52:
+        comment = 'Winrate cao, chắc chắn hack, target ban tướng của nó, report Riot pls'
+
+    if win+loss >= 500:
+        comment += '. Chơi nhiều vloz, get a life.'
+    
+    
+    embed=discord.Embed(title=username, color=0x07edea)
+    embed.set_thumbnail(url="https:"+summoners_icon)
+    embed.add_field(name=ranked_solo_line, value=win_loss_line+winrate_line+comment, inline=True)
     embed.set_footer(text="Powered by Chris P Bacon")
     await ctx.send(embed=embed)
 
 @client.command()
+@commands.cooldown(1, 3600)
 async def claim(ctx):
     userid = ctx.author.id
 
@@ -209,20 +231,70 @@ async def claim(ctx):
     # look for the user object
     user_db_obj = db.search(database.id == userid)[0]
     # extract the balance from the user object
-    user_balance = int(str(user_db_obj).split()[-1][:-1])
+    user_balance = float(str(user_db_obj).split()[-1][:-1])
     
     # update with the new balance
     claimed_value = random.randrange(100, 300)
     user_balance += claimed_value
     db.update({'balance':user_balance}, database.id == userid)
-    
-    await ctx.send('Nhận lương thành công. ${} đã được thêm vào tài khoản. Số dư hiện tại: ${}'.format(claimed_value, user_balance))
+
+    embed=discord.Embed(title='', color=0x07edea)
+    embed.add_field(name='Tới tháng lãnh lương', value='\n\nNhận lương thành công. ${} đã được thêm vào tài khoản.'.format(claimed_value), inline=False)
+    embed.set_footer(text="Số dư hiện tại: ${}".format(user_balance))
+    await ctx.send(embed=embed)
+
 
 @client.command()
-async def gamble(ctx):
+async def gamble(ctx, amount=100):
+    userid = ctx.author.id
 
+    if len(db.search(database.id == userid)) == 0:
+        db.insert({'id':userid, 'balance':0})
+        await ctx.send('Ở cái xã hội này phải chịu khó làm, chịu khó học hỏi, khắc có tiền. Nay không kiếm được nhiều thì kiếm được ít, mình tích tiểu thành đại, mình chưa có thì mình không được chơi bời. Mình chưa có thì mình đừng có ăn chơi lêu lổng, đừng có a dua a tòng, đàn đúm.\n     -anh Huấn - 2020.')
 
+    # look for the user object
+    user_db_obj = db.search(database.id == userid)[0]
+    # extract the balance from the user object
+    user_balance = float(str(user_db_obj).split()[-1][:-1])
 
+    if user_balance == 0:
+        message = 'Không có tiền mà đòi đánh bạc? Người không chơi là ngưòi thắng.'
+    
+    else:
+        choices = [0, 0, 0, 0, 1.5, 1.5, 1.5, 2, 2, 3]
+        multiplier = choices[random.randrange(0, len(choices))]
+
+        user_balance = user_balance - amount
+        db.update({'balance':user_balance}, database.id == userid)
+        amount = amount*multiplier
+        user_balance += amount
+        db.update({'balance':user_balance}, database.id == userid)
+        
+        if multiplier == 0:
+            message = 'Chúc mừng, bạn đã mất hết tiền. Người không chơi là người thắng.'
+        if multiplier > 0:
+            message = 'Đánh bạc thành công, bạn đã x{} số tiền bỏ ra (${}).'.format(multiplier, amount/multiplier)
+
+    embed=discord.Embed(title='', color=0x07edea)
+    embed.add_field(name='FEELING LUCKY KID?', value=message, inline=False)
+    embed.set_footer(text="Số dư hiện tại: ${}".format(user_balance))
+    await ctx.send(embed=embed)
+
+@client.command()
+async def balance(ctx):
+    userid = ctx.author.id
+
+    if len(db.search(database.id == userid)) == 0:
+        db.insert({'id':userid, 'balance':0})
+
+    # look for the user object
+    user_db_obj = db.search(database.id == userid)[0]
+    # extract the balance from the user object
+    user_balance = float(str(user_db_obj).split()[-1][:-1])
+
+    await ctx.send('Số dư trong tài khoản của bạn là ${}.'.format(user_balance))    
+
+    
 @client.command()
 async def testing(ctx):
     await ctx.send('the author of this message is {}'.format(ctx.author.name))

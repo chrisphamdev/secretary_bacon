@@ -25,46 +25,27 @@ def get_profile(summoner_name):
 
 
 def get_solo_rank(profile):
-    summoners_icon = profile.findAll('img', {'class':'ProfileImage'})
+    # obtain summoner's icon
+    summoners_icon_obj = profile.findAll('img', {'class':'ProfileImage'})
+    for icon in summoners_icon_obj:
+        summoners_icon = icon['src']
+
+    # obtain rank solo 
     rank_solo_obj = profile.findAll('div', {'class':'TierRank'})
     for item in rank_solo_obj:
         rank_solo = item.text
 
+    # obtain wins
     wins = profile.findAll('span', {'class':'wins'})
     for item in wins:
         win = int(item.text[:-1])
-    
+
+    # obtain losses
     losses = profile.findAll('span', {'class':'losses'})
     for item in losses:
         loss = int(item.text[:-1])
 
+    # calculate win rate
     winrate = win/(win+loss)
     winrate = round(winrate*100)
-    
-    return rank_solo, win, loss, winrate
-
-def get_champions(profile):
-    all_champions = profile.findAll('div', {'class':'ChampionBox Ranked'})
-    top5_champions = []
-    for champion in all_champions:
-        champion_name = champion.findAll('div', {'class':'ChampionName'})
-        for champion_name_class in champion_name:
-            if len(top5_champions) == 5:
-                break
-            top5_champions += [champion_name_class.text.strip()]
-    return top5_champions
-
-def get_past_20_games(profile):
-    most_played = profile.findAll('td', {'class':'MostChampion'})
-    top3 = []
-    for content in most_played:
-        champs = content.findAll('div', {'class':'Content'})
-        top3 += [champs]
-
-    top3_simplified = []
-
-    for champ in top3:
-        print(champ)
-
-profile = get_profile('Chrispy Bacon')
-get_solo_rank(profile)
+    return summoners_icon, rank_solo, win, loss, winrate
