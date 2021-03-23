@@ -10,6 +10,8 @@ import logging
 import random
 from discord.utils import get
 import time
+from tinydb import TinyDB, Query
+import random
 
 
 from test import *
@@ -19,16 +21,18 @@ client = commands.Bot(command_prefix=';')
 
 nums = '1\N{variation selector-16}\N{combining enclosing keycap}'
 
-
 # process the custom database
+db = TinyDB('database/currencydb.json')
+database = Query()
 
 # each member will be store in the data base under the
 # form 'userid balance' seperated by a space
-with open('currencydb.txt', 'r') as file:
-    database_raw = file.read().split('\n')
-    database = {}
-    for user in database:
-        
+def read_database():
+    with open('currencydb.txt', 'r') as file:
+        database_raw = file.read().split('\n')
+        database = {}
+        for user in database:
+            pass
 
 # Custom help message - to be done
 client.remove_command('help')
@@ -196,8 +200,32 @@ async def rank_solo(ctx, *, username):
     await ctx.send(embed=embed)
 
 @client.command()
-async def claim(ctx, amount):
-    pass
+async def claim(ctx):
+    userid = ctx.author.id
+
+    if len(db.search(database.id == userid)) == 0:
+        db.insert({'id':userid, 'balance':0})
+    
+    # look for the user object
+    user_db_obj = db.search(database.id == userid)[0]
+    # extract the balance from the user object
+    user_balance = int(str(user_db_obj).split()[-1][:-1])
+    
+    # update with the new balance
+    claimed_value = random.randrange(100, 300)
+    user_balance += claimed_value
+    db.update({'balance':user_balance}, database.id == userid)
+    
+    await ctx.send('Nhận lương thành công. ${} đã được thêm vào tài khoản. Số dư hiện tại: ${}'.format(claimed_value, user_balance))
+
+@client.command()
+async def gamble(ctx):
+
+
+
+@client.command()
+async def testing(ctx):
+    await ctx.send('the author of this message is {}'.format(ctx.author.name))
 
 
 client.run(token)
