@@ -40,6 +40,10 @@ client.remove_command('help')
 async def help(ctx):
     await ctx.send("Đéo có help command đâu.")
 
+@client.event
+async def on_command_error(ctx, error):
+    if type(error) == discord.ext.commands.errors.CommandOnCooldown:
+        await ctx.send('Có làm thì mới có ăn. Chỉ nhận được lương 1 lần trong 15 phút.')
 
 @client.event
 async def on_member_join(member):
@@ -221,7 +225,7 @@ async def rank_solo(ctx, *, username):
     await ctx.send(embed=embed)
 
 @client.command()
-@commands.cooldown(1, 3600)
+@commands.cooldown(1, 900)
 async def claim(ctx):
     userid = ctx.author.id
 
@@ -257,7 +261,7 @@ async def gamble(ctx, amount=100):
     # extract the balance from the user object
     user_balance = float(str(user_db_obj).split()[-1][:-1])
 
-    if user_balance == 0:
+    if user_balance == 0 or amount>user_balance:
         message = 'Không có tiền mà đòi đánh bạc? Người không chơi là ngưòi thắng.'
     
     else:
@@ -292,12 +296,57 @@ async def balance(ctx):
     # extract the balance from the user object
     user_balance = float(str(user_db_obj).split()[-1][:-1])
 
-    await ctx.send('Số dư trong tài khoản của bạn là ${}.'.format(user_balance))    
+    await ctx.send('Số dư trong tài khoản của bạn là ${}.'.format(user_balance))  
 
+@client.command()
+async def steal(ctx, mentioned_user):
+    member, mentioned_user = ctx.author, ctx.message.mentions[0]
+
+    steal_success = random.choice([False, False, False, True, True])
+
+    if len(db.search(database.id == mentioned_user.id)) == 0:
+        db.insert({'id':mentioned_user.id, 'balance':0})
+    
+    # look for the user object
+    author_obj = db.search(database.id == member.id)[0]
+    # extract the balance from the user object
+    author_balance = float(str(author_obj).split()[-1][:-1])
+
+    # look for the user object
+    victim_obj = db.search(database.id == mentioned_user.id)[0]
+    # extract the balance from the user object
+    victim_balance = float(str(victim_obj).split()[-1][:-1])
+
+    if victim_balance <= 100:
+        message = 'Đừng cướp của người nghèo thằng lồn vô tâm.'
+        await ctx.send(message)
+    elif steal_success:
+        author_balance += 50
+        victim_balance -= 50
+        db.update({'balance':author_balance}, database.id == member.id)
+        db.update({'balance':victim_balance}, database.id == mentioned_user.id)
+        message = 'Cướp thành công từ {}, số dư mới là `${}`'.format(mentioned_user.mention, author_balance)
+        await ctx.send(message)
+    elif not steal_success:
+        author_balance -= 50
+        db.update({'balance':author_balance}, database.id == member.id)
+        message = 'Không làm mà đòi có ăn?\nTrộm cắp bị cảnh sát bắt, phạt $50.\nSố dư mới ${}.'.format(author_balance)
+        await ctx.send(message)
+
+@client.command()
+async def leaderboard(ctx):
+    message = '```'
+    for user in db:
+        message += str(user)
+    message += '```'
+
+    await ctx.send(message)
     
 @client.command()
+@commands.cooldown(1,3600)
 async def testing(ctx):
     await ctx.send('the author of this message is {}'.format(ctx.author.name))
 
 
 client.run(token)
+    
