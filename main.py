@@ -43,7 +43,7 @@ async def help(ctx):
 @client.event
 async def on_command_error(ctx, error):
     if type(error) == discord.ext.commands.errors.CommandOnCooldown:
-        await ctx.send('Có làm thì mới có ăn. Chỉ nhận được lương 1 lần trong 15 phút.')
+        await ctx.send('Có làm thì mới có ăn. Chỉ nhận được lương 1 lần trong 10 phút.')
 
 @client.event
 async def on_member_join(member):
@@ -225,7 +225,7 @@ async def rank_solo(ctx, *, username):
     await ctx.send(embed=embed)
 
 @client.command()
-@commands.cooldown(1, 900)
+@commands.cooldown(1, 600)
 async def claim(ctx):
     userid = ctx.author.id
 
@@ -320,6 +320,10 @@ async def steal(ctx, mentioned_user):
     if victim_balance <= 100:
         message = 'Đừng cướp của người nghèo thằng lồn vô tâm.'
         await ctx.send(message)
+    elif author_balance <= 50:
+        message = 'Không có tiền mà đòi đi ăn cướp?'
+        await ctx.send(message)
+        return
     elif steal_success:
         author_balance += 50
         victim_balance -= 50
@@ -335,13 +339,81 @@ async def steal(ctx, mentioned_user):
 
 @client.command()
 async def leaderboard(ctx):
-    message = '```'
+    leaderboard = []
+
     for user in db:
-        message += str(user)
+        userid = int(str(user).split()[1][:-1])
+        username = None
+        user_balance = float(str(user).split()[-1][:-1])
+    
+        if userid == 342576375523311616:
+            username = 'Quân'
+        if userid == 455655526156599306:
+            username = 'Bách'
+        if userid == 355905526745268226:
+            username = 'Minh'
+        if userid == 760002567878344715:
+            username = 'Thư ký Bacon'
+        if userid == 385348785733107714:
+            username = 'Đức Anh'
+        if userid == 234196333202767874:
+            username = 'Đức'
+        if userid == 455655526156599306:
+            username = 'Trí'
+        if username is None:
+            username = str(userid)
+        
+        leaderboard += [(user_balance, username)]
+ 
+    leaderboard.sort()
+    leaderboard.reverse()
+
+    message = '```json\n'
+    for elm in leaderboard:
+        message += '{:<30}|  {}'.format(elm[1], elm[0])
+        message += '\n'
+    message = message[:-1]
     message += '```'
 
+
     await ctx.send(message)
+
+@client.command()
+async def give(ctx, mentioned_user, amount):
+    member, mentioned_user = ctx.author, ctx.message.mentions[0]
+    amount = float(amount)
+
+    if len(db.search(database.id == mentioned_user.id)) == 0:
+        db.insert({'id':mentioned_user.id, 'balance':0})
+    if len(db.search(database.id == member.id)) == 0:
+        db.insert({'id':member.id, 'balance':0})
     
+    # look for the user object
+    author_obj = db.search(database.id == member.id)[0]
+    # extract the balance from the user object
+    author_balance = float(str(author_obj).split()[-1][:-1])
+
+    # look for the user object
+    victim_obj = db.search(database.id == mentioned_user.id)[0]
+    # extract the balance from the user object
+    victim_balance = float(str(victim_obj).split()[-1][:-1])
+
+    if amount > author_balance:
+        await ctx.send('Không có tiền bày đặt bố thí?')
+    else:
+        author_balance -= amount
+        victim_balance += amount
+        db.update({'balance':author_balance}, database.id == member.id)
+        db.update({'balance':victim_balance}, database.id == mentioned_user.id)
+        await ctx.send('{} donated `${}` cho {}'.format(member.mention, amount, mentioned_user.mention))
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def reset_database(ctx):
+    db.update({'balance':200})
+    await ctx.send('Database rebooted. Balance are now set to $200.')
+
+
 @client.command()
 @commands.cooldown(1,3600)
 async def testing(ctx):
