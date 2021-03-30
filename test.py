@@ -6,23 +6,6 @@ from bs4 import BeautifulSoup as soup
 
 import ssl
 
-def get_profile(summoner_name):
-    ssl._create_default_https_context = ssl._create_unverified_context
-
-    player_name = summoner_name
-    profile_url = 'https://oce.op.gg/summoner/userName='
-
-    player_name = player_name.replace(' ', '+')
-    player_name = player_name.replace("'", "%27")
-    profile_url += player_name
-
-    client = urllib.request.urlopen(profile_url)
-    profile_html = client.read()
-    client.close()
-
-    profile_html_parsed = soup(profile_html, 'html.parser')
-    return profile_html_parsed
-
 
 def get_solo_rank(profile):
     # obtain summoner's icon

@@ -420,6 +420,46 @@ async def reset_database(ctx):
 
 
 @client.command()
+async def slot(ctx, amount):
+    userid = ctx.author.id
+
+    if len(db.search(database.id == userid)) == 0:
+        db.insert({'id':userid, 'balance':0})
+        await ctx.send('Ở cái xã hội này phải chịu khó làm, chịu khó học hỏi, khắc có tiền. Nay không kiếm được nhiều thì kiếm được ít, mình tích tiểu thành đại, mình chưa có thì mình không được chơi bời. Mình chưa có thì mình đừng có ăn chơi lêu lổng, đừng có a dua a tòng, đàn đúm.\n     -anh Huấn - 2020.')
+
+    # look for the user object
+    user_db_obj = db.search(database.id == userid)[0]
+    # extract the balance from the user object
+    user_balance = float(str(user_db_obj).split()[-1][:-1])
+
+    if user_balance == 0 or amount>user_balance or amount <= 0:
+        message = 'Không có tiền mà đòi đánh bạc? Người không chơi là ngưòi thắng.'
+    
+    else:
+        multiplier = 0
+        values = ['orange', 'banana', 'grape', 'coin']
+        output = []
+        for i in range(3):
+            output += [random.choice(values)]
+        
+        if output[0] == output[1] and output[0] == output[2]:
+            if output[0] == 'coin':
+                multiplier = 5
+            else:
+                multiplier = 3
+        elif output[0] == output[1] or output[1] == output[2] or output[0] == output[2]:
+            if output.count('coin') == 2:
+                multiplier = 2.5
+            else:
+                multiplier = 2
+        elif 'coin' in output:
+            multiplier = 1.5
+        else:
+            multiplier = 0
+        
+
+
+@client.command()
 @commands.cooldown(1,3600)
 async def testing(ctx):
     await ctx.send('the author of this message is {}'.format(ctx.author.name))
