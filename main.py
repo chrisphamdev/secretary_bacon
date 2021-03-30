@@ -255,13 +255,13 @@ async def gamble(ctx, amount=100):
     if len(db.search(database.id == userid)) == 0:
         db.insert({'id':userid, 'balance':0})
         await ctx.send('Ở cái xã hội này phải chịu khó làm, chịu khó học hỏi, khắc có tiền. Nay không kiếm được nhiều thì kiếm được ít, mình tích tiểu thành đại, mình chưa có thì mình không được chơi bời. Mình chưa có thì mình đừng có ăn chơi lêu lổng, đừng có a dua a tòng, đàn đúm.\n     -anh Huấn - 2020.')
-
+    
     # look for the user object
     user_db_obj = db.search(database.id == userid)[0]
     # extract the balance from the user object
     user_balance = float(str(user_db_obj).split()[-1][:-1])
 
-    if user_balance == 0 or amount>user_balance:
+    if user_balance == 0 or amount>user_balance or amount <= 0:
         message = 'Không có tiền mà đòi đánh bạc? Người không chơi là ngưòi thắng.'
     
     else:
@@ -348,7 +348,7 @@ async def leaderboard(ctx):
     
         if userid == 342576375523311616:
             username = 'Quân'
-        if userid == 455655526156599306:
+        if userid == 417125704807874570:
             username = 'Bách'
         if userid == 355905526745268226:
             username = 'Minh'
@@ -400,12 +400,17 @@ async def give(ctx, mentioned_user, amount):
 
     if amount > author_balance:
         await ctx.send('Không có tiền bày đặt bố thí?')
+    elif member.id == mentioned_user.id:
+        await ctx.send('Invalid arguments.')
+    elif amount <= 0:
+        await ctx.send('Invalid arguments.')
     else:
-        author_balance -= amount
-        victim_balance += amount
-        db.update({'balance':author_balance}, database.id == member.id)
-        db.update({'balance':victim_balance}, database.id == mentioned_user.id)
-        await ctx.send('{} donated `${}` cho {}'.format(member.mention, amount, mentioned_user.mention))
+        if member.id != mentioned_user.id:
+            author_balance -= amount
+            victim_balance += amount
+            db.update({'balance':author_balance}, database.id == member.id)
+            db.update({'balance':victim_balance}, database.id == mentioned_user.id)
+            await ctx.send('{} donated `${}` cho {}'.format(member.mention, amount, mentioned_user.mention))
 
 @client.command()
 @commands.has_permissions(administrator=True)
