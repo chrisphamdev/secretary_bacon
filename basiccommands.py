@@ -46,7 +46,7 @@ async def beg(ctx):
   
 @bot.command()
 async def ping(ctx):
-    await ctx.send(f'Pong! Delay giữa client với server là {round(client.latency * 1000)}ms.')
+    await ctx.send(f'Pong! Delay giữa client với server là {round(bot.latency * 1000)}ms.')
 
 @bot.command()
 async def quyetdinh(ctx, option1, option2):

@@ -28,5 +28,5 @@ from casino import *
 @bot.command()
 @commands.cooldown(1,3600)
 async def testing(ctx):
-    await ctx.send('the author of this message is {}'.format(ctx.author.name))
+    await ctx.send('this is being run from my pc')
     
