@@ -207,10 +207,10 @@ async def reset_database(ctx):
     await ctx.send('Database rebooted. Balance are now set to $200.')
 
 
-@bot.command()
+@client.command()
 async def slot(ctx, amount):
     userid = ctx.author.id
-
+    amount = int(amount)
     if len(db.search(database.id == userid)) == 0:
         db.insert({'id':userid, 'balance':0})
         await ctx.send('Ở cái xã hội này phải chịu khó làm, chịu khó học hỏi, khắc có tiền. Nay không kiếm được nhiều thì kiếm được ít, mình tích tiểu thành đại, mình chưa có thì mình không được chơi bời. Mình chưa có thì mình đừng có ăn chơi lêu lổng, đừng có a dua a tòng, đàn đúm.\n     -anh Huấn - 2020.')
@@ -225,11 +225,11 @@ async def slot(ctx, amount):
     
     else:
         multiplier = 0
-        values = ['orange', 'banana', 'grape', 'coin']
+        values = ['orange', 'banana', 'grape', 'pineapple', 'coin']
+        emoji_dict = {'orange':'🍊', 'banana':'🍌', 'grape':'🍇', 'pineapple':'🍍', 'coin':'💰'}
         output = []
         for i in range(3):
             output += [random.choice(values)]
-        
         if output[0] == output[1] and output[0] == output[2]:
             if output[0] == 'coin':
                 multiplier = 5
@@ -241,6 +241,31 @@ async def slot(ctx, amount):
             else:
                 multiplier = 2
         elif 'coin' in output:
-            multiplier = 1.5
+            multiplier = 0.5
         else:
             multiplier = 0
+
+        for i in range(len(output)):
+            output[i] = emoji_dict[output[i]]
+        
+        slot_output = '|  {}  |  {}  |  {}  |'.format(output[0], output[1], output[2])
+
+        if multiplier == 0:
+            message = 'Chúc mừng, bạn đã mất hết tiền. Người không chơi là người thắng.'
+        if multiplier == 0.5:
+            message = 'Chúc may mắn lần sau, bạn được hoàn lại 1 nửa số tiền (x0.5).'
+        else:
+            message = 'Đánh bạc thành công, bạn đã x{} số tiền bỏ ra (${}).'.format(multiplier, amount)
+        
+        user_balance = user_balance - amount
+        db.update({'balance':user_balance}, database.id == userid)
+        amount = amount*multiplier
+        user_balance += amount
+        db.update({'balance':user_balance}, database.id == userid)
+
+        embed=discord.Embed(title='', color=0x07edea)
+        embed.add_field(name='FEELING LUCKY KID?', value='.', inline=False)
+        embed.add_field(name=slot_output, value=message, inline=False)
+        embed.set_footer(text="Số dư hiện tại: ${}".format(user_balance))
+        await ctx.send(embed=embed)
+

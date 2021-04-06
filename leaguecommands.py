@@ -23,13 +23,15 @@ async def rank_solo(ctx, *, username):
 
     comment = '\n\n'
     if winrate < 46:
-        comment = 'Winrate thấp, rác vcl'
+        comment = 'Winrate thấp, rác vcl.'
     if winrate >= 46 and winrate < 49:
-        comment = 'Dưới trung bình, còn cần cố gắng'
+        comment = 'Dưới trung bình, còn cần cố gắng.'
     if winrate >=49 and winrate < 52:
-        comment = 'Winrate trung bình, không có gì đặc sắc'
-    if winrate >= 52:
-        comment = 'Winrate cao, chắc chắn hack, target ban tướng của nó, report Riot pls'
+        comment = 'Winrate trung bình, không có gì đặc sắc.'
+    if winrate >= 52 and winrate < 55:
+        comment = 'Winrate khá cao, respect.'
+    if winrate >= 55:
+        comment = 'Winrate cao, chắc chắn hack, report Riot pls.'
 
     if win+loss >= 500:
         comment += '. Chơi nhiều vloz, get a life.'
