@@ -207,7 +207,7 @@ async def reset_database(ctx):
     await ctx.send('Database rebooted. Balance are now set to $200.')
 
 
-@client.command()
+@bot.command()
 async def slot(ctx, amount):
     userid = ctx.author.id
     amount = int(amount)
