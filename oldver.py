@@ -1,5 +1,10 @@
-''' This bot was developed by Chris Pham
-'''
+# LEGACY VERSION OF THE BOT
+
+# DO NOT RUN
+
+# DO NOT RUN
+
+
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands, tasks
