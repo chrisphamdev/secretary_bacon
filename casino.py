@@ -1,5 +1,7 @@
 # This module contain the gambling functionality of the bot
+# This module will now be archived (9/4/2021)
 
+"""
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands, tasks
@@ -269,3 +271,4 @@ async def slot(ctx, amount):
         embed.set_footer(text="Số dư hiện tại: ${}".format(user_balance))
         await ctx.send(embed=embed)
 
+"""

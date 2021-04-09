@@ -22,8 +22,8 @@ bot = commands.Bot(command_prefix=';')
 from basiccommands import *
 from archive import *
 from leaguecommands import *
-from casino import *
-
+# from casino import *
+from stockgame import *
 
 @bot.command()
 @commands.cooldown(1,3600)
