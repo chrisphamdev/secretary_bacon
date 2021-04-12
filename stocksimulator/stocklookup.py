@@ -5,6 +5,24 @@ import urllib
 from bs4 import BeautifulSoup as soup
 import ssl
 
+class Stock:
+    def __init__(self, symbol, company_name, current_price, current_change, current_change_percent, market, url):
+        self.symbol = symbol.upper()
+        self.company_name = company_name
+        self.current_price = current_price
+        self.current_change = current_change
+        self.current_change_percent = current_change_percent
+        self.market = market
+
+    def price_update(self):
+        self.current_price, self.current_change, self.current_change_percent = update_price(self.symbol)
+
+    def __str__(self):
+        return '{} {} {}%'.format(self.symbol, self.current_price, self.current_change_percent)
+    
+    def __repr__(self):
+        return __str__(self)
+
 def get_stock_page(symbol):
     #ssl._create_default_https_context = ssl._create_unverified_context
     url = 'https://www.marketwatch.com/investing/stock/{}'.format(symbol)
@@ -20,7 +38,9 @@ def update_price(symbol):
     current_price = str(page_html.findAll('h3', {'class':'intraday__price'})[0])
     current_price_start = current_price.rfind('">') + 2
     current_price_end = current_price.find('</bg-quote>')
-    current_price = float(current_price[current_price_start:current_price_end])
+    current_price = current_price[current_price_start:current_price_end]
+    current_price = current_price.replace(',', '')
+    current_price = float(current_price)
     
     # get current change
     current_change = str(page_html.findAll('span', {'class':'change--point--q'})[0])
@@ -36,8 +56,6 @@ def update_price(symbol):
 
     return current_price, current_change, current_change_percent
 
-
-from .stock import Stock
 # get information from stock symbol, return an object of Stock class
 def get_info(symbol):
     page_html = get_stock_page(symbol)
@@ -68,3 +86,5 @@ def get_info(symbol):
     current_price, current_change, current_change_percent = update_price(symbol)
 
     return Stock(symbol, company_name, current_price, current_change, current_change_percent, company_market, url)
+
+print(get_info('AMZN'))

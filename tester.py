@@ -1,4 +1,3 @@
-holdings = {'key':'value', 1:2}
-
-holdings.pop(1)
-print(holdings)
+current_price = '1,234'
+current_price.replace(',', '')
+print(current_price)

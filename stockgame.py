@@ -76,18 +76,28 @@ async def stock_init(ctx):
     
 @bot.command()
 async def balance(ctx):
+    user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
     holdings = decode_holdings(ctx.author.id)
-    capital = calculate_capital(ctx.author.id)
+    capital = user_db_obj['wallet']
+
     output = '```json\nPORTFOLIO SUMMARY\n\n'
     output += '{:<20}| {:<10} | {:<10} | {:<10}\n'.format('    Company name', '  Symbol', 'Share owned', 'Current value')
     seperator = '-'*62
     output += seperator + '\n'
     for symbol in holdings:
         target_stock = get_info(symbol)
-        line = '{:<20}| {:<10} | {:<10.2f}  | {:<10.2f}\n'.format(target_stock.company_name, target_stock.symbol, holdings[symbol], target_stock.current_price*holdings[symbol])
+        if len(target_stock.company_name) >= 15:
+            company_name = target_stock.company_name[:12]
+        else:
+            company_name = target_stock.company_name
+        current_value = target_stock.current_price*holdings[symbol]
+        capital += current_value
+        line = '{:<20}| {:<10} | {:<10.2f}  | {:<10.2f}\n'.format(company_name, target_stock.symbol, holdings[symbol], current_value)
         output += line
     output += seperator + '\n\n'
-    output += 'CAPITAL: ${:.2f}'.format(calculate_capital(ctx.author.id))
+    output += 'WALLET: ${}'.format(user_db_obj['Wallet'])
+    output += 'CAPITAL: ${:.2f}'.format(capital)
+    output += 'TOTAL GAIN: {}%'.format(round((capital/100000 - 1)*100))
     output += '```'
     await ctx.send(output)
     
@@ -97,10 +107,11 @@ async def buy(ctx, symbol, amount):
     amount_bought = round(float(amount),2)
     service_fee = amount_bought*0.005
 
-    if amount_bought > user_db_obj['wallet']:
-        await ctx.send('Không có tiền mà còn đua đòi?')
-    if amount_bought <= 0:
-        await ctx.send('Invalid argument')
+    if amount_bought+service_fee > user_db_obj['wallet'] or amount_bought <= 0:
+        if amount_bought <= 0:
+            await ctx.send('Invalid argument')
+        else:
+            await ctx.send('Không có tiền mà còn đua đòi?')
     else:
         target_stock = get_info(symbol)
 
@@ -152,10 +163,10 @@ async def sellall(ctx, symbol):
         await ctx.send('Làm đéo gì có mà bán?')
     else:
         target_stock = get_info(symbol)
-        amount_selling = holdings[symbol.upper()]*target_stock.current_price
         share_num = holdings[symbol.upper()]
+        amount_selling = share_num*target_stock.current_price
         holdings.pop(symbol.upper())
-        new_balance = user_db_obj + amount_selling
+        new_balance = user_db_obj['wallet'] + amount_selling
         await ctx.send('Đã bán ${:.2f}, tương đương {:.2f} share {}. Còn lại ${:.2f} tiền mặt'.format(amount_selling, share_num, target_stock.symbol, new_balance))
         updated_holdings = encode_holdings((holdings))
         db.update({'holdings':updated_holdings}, database.id == ctx.author.id)
@@ -164,4 +175,5 @@ async def sellall(ctx, symbol):
 @bot.command()
 async def cash(ctx):
     user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
+    print(user_db_obj['wallet'])
     await ctx.send('Còn lại ${:.2f} tiền mặt'.format(user_db_obj['wallet']))

@@ -41,7 +41,7 @@ async def create_colour(ctx):
 @bot.event
 async def on_raw_reaction_add(data):
     if data.message_id == 760045988038574090:
-        member = client.get_user(data.user_id)
+        member = bot.get_user(data.user_id)
         if data.emoji.name == '1️⃣':
             role = get(data.member.guild.roles, id=760046394370818088)
             await data.member.add_roles(role)
@@ -56,7 +56,7 @@ async def on_raw_reaction_add(data):
             await data.member.add_roles(role)
     
     if data.message_id == 760112391286685756:
-        member = client.get_user(data.user_id)
+        member = bot.get_user(data.user_id)
         if data.emoji.name == '1️⃣':
             role = get(data.member.guild.roles, id=760110053314920479)
             await data.member.add_roles(role)
@@ -76,8 +76,8 @@ async def on_raw_reaction_add(data):
 @bot.event
 async def on_raw_reaction_remove(data):
     if data.message_id == 760112391286685756:
-        member = client.get_user(data.user_id)
-        guild1 = client.get_guild(data.guild_id)
+        member = bot.get_user(data.user_id)
+        guild1 = bot.get_guild(data.guild_id)
         for mem in guild1.members:
             if mem.id == member.id:
                 reacted_member = mem
