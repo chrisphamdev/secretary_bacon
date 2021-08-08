@@ -10,6 +10,8 @@ import random
 from database.databasehandler import *
 from stocksimulator.stocklookup import get_info
 from main import bot
+from yahoo_fin import stock_info
+import yfinance as yf
 
 
 # decode the holdings from the database
@@ -42,26 +44,20 @@ def calculate_capital(userid):
         return capital
 
     for symbol in holdings:
-        stock = get_info(symbol)
-        capital += stock.current_price*holdings[symbol]
+        current_price = stock_info.get_live_price(symbol)
+        capital += current_price*holdings[symbol]
     return capital
 
 
 @bot.command()
 async def query(ctx, symbol):
     stock_object = get_info(symbol)
-    if stock_object.current_change >= 0:
-        emb_color = 0x05d61e
-    else:
-        emb_color = 0xf20707
-
     values = ''
     values += 'Current price :  {}\n'.format(stock_object.current_price)
-    values += 'Current change:  {}\n'.format(stock_object.current_change)
-    values += 'Change in %   :  {}\n'.format(stock_object.current_change_percent)
-    embed=discord.Embed(title="{} lookup".format(stock_object.symbol), color=emb_color)
+    embed=discord.Embed(title=stock_object.company_name, color=0x05d61e)
+    #embed.set_thumbnail(url=stock_object.url)
     embed.add_field(name=stock_object.company_name, value=values, inline=False)
-    embed.set_footer(text="Retrieved from www.marketwatch.com")
+    embed.set_footer(text="Retrieved from www.tradingview.com")
     await ctx.send(embed=embed)
 
 @bot.command()
@@ -85,20 +81,21 @@ async def balance(ctx):
     seperator = '-'*62
     output += seperator + '\n'
     for symbol in holdings:
-        target_stock = get_info(symbol)
-        if len(target_stock.company_name) >= 15:
-            company_name = target_stock.company_name[:12]
-        else:
-            company_name = target_stock.company_name
-        current_value = target_stock.current_price*holdings[symbol]
+        company_name = yf.Ticker(symbol.upper()).info['longName']
+        if len(company_name) >= 15:
+            company_name = company_name[:12]
+        
+        current_price = stock_info.get_live_price(symbol)
+        current_value = current_price*holdings[symbol]
         capital += current_value
-        line = '{:<20}| {:<10} | {:<10.2f}  | {:<10.2f}\n'.format(company_name, target_stock.symbol, holdings[symbol], current_value)
+        line = '{:<20}| {:<10} | {:<10.2f}  | {:<10.2f}\n'.format(company_name, symbol.upper(), holdings[symbol], current_value)
         output += line
     output += seperator + '\n\n'
     output += 'WALLET: ${}'.format(user_db_obj['Wallet'])
     output += 'CAPITAL: ${:.2f}'.format(capital)
     output += 'TOTAL GAIN: {}%'.format(round((capital/100000 - 1)*100))
     output += '```'
+    print(output)
     await ctx.send(output)
     
 @bot.command()
@@ -114,7 +111,7 @@ async def buy(ctx, symbol, amount):
             await ctx.send('Không có tiền mà còn đua đòi?')
     else:
         target_stock = get_info(symbol)
-
+        current_price = stock_info.get_live_price(symbol)
         share_owned = round(amount_bought/target_stock.current_price,2)
         new_balance = user_db_obj['wallet'] - amount_bought - service_fee
         holdings = decode_holdings(ctx.author.id)
@@ -175,5 +172,4 @@ async def sellall(ctx, symbol):
 @bot.command()
 async def cash(ctx):
     user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
-    print(user_db_obj['wallet'])
     await ctx.send('Còn lại ${:.2f} tiền mặt'.format(user_db_obj['wallet']))

@@ -1,3 +1,3 @@
-current_price = '1,234'
-current_price.replace(',', '')
-print(current_price)
+from yahoo_fin import stock_info
+
+print(stock_info.get_live_price('AAPL'))
