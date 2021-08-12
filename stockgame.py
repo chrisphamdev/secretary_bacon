@@ -80,6 +80,7 @@ async def balance(ctx):
     output += '{:<20}| {:<10} | {:<10} | {:<10}\n'.format('    Company name', '  Symbol', 'Share owned', 'Current value')
     seperator = '-'*62
     output += seperator + '\n'
+
     for symbol in holdings:
         company_name = yf.Ticker(symbol.upper()).info['longName']
         if len(company_name) >= 15:
@@ -90,12 +91,13 @@ async def balance(ctx):
         capital += current_value
         line = '{:<20}| {:<10} | {:<10.2f}  | {:<10.2f}\n'.format(company_name, symbol.upper(), holdings[symbol], current_value)
         output += line
+    
     output += seperator + '\n\n'
-    output += 'WALLET: ${}'.format(user_db_obj['Wallet'])
-    output += 'CAPITAL: ${:.2f}'.format(capital)
-    output += 'TOTAL GAIN: {}%'.format(round((capital/100000 - 1)*100))
+    output += 'WALLET       : ${:.2f}\n'.format(user_db_obj['wallet'])
+    output += 'CAPITAL      : ${:.2f}\n'.format(capital, 2)
+    output += 'TOTAL GAIN   : {}%'.format(round((capital/100000 - 1)*100))
     output += '```'
-    print(output)
+    
     await ctx.send(output)
     
 @bot.command()
