@@ -1,3 +1,4 @@
+"""
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands, tasks
@@ -175,3 +176,4 @@ async def sellall(ctx, symbol):
 async def cash(ctx):
     user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
     await ctx.send('Còn lại ${:.2f} tiền mặt'.format(user_db_obj['wallet']))
+"""

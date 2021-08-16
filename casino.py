@@ -12,7 +12,18 @@ import random
 
 from database.databasehandler import *
 from main import bot
+from helper.Blackjack import Blackjack
 
+
+@bot.command()
+def startgamble(ctx):
+    userid = ctx.author.id
+    if len(db.search(database.id == userid)) == 0:
+        db.insert({'id':userid, 'balance':0})
+        await ctx.send("Profile created.")
+    else:
+        await ctx.send("Profile existed.")
+        
 @bot.command()
 @commands.cooldown(1, 600)
 async def claim(ctx):
@@ -269,3 +280,20 @@ async def slot(ctx, amount):
         embed.add_field(name=slot_output, value=message, inline=False)
         embed.set_footer(text="Số dư hiện tại: ${}".format(user_balance))
         await ctx.send(embed=embed)
+
+
+@bot.command()
+def bj(ctx):
+    userid = ctx.author.id
+    amount = int(amount)
+    if len(db.search(database.id == userid)) == 0:
+        db.insert({'id':userid, 'balance':0})
+        await ctx.send("Không có tiền mà đua đòi?")
+
+    # look for the user object
+    user_db_obj = db.search(database.id == userid)[0]
+    # extract the balance from the user object
+    user_balance = float(str(user_db_obj).split()[-1][:-1])
+
+    if user_balance == 0 or amount>user_balance or amount <= 0:
+        message = 'Không có tiền mà đòi đánh bạc? Người không chơi là ngưòi thắng.'
