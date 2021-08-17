@@ -19,7 +19,7 @@ async def help(ctx):
 @bot.event
 async def on_command_error(ctx, error):
     if type(error) == discord.ext.commands.errors.CommandOnCooldown:
-        await ctx.send('Có làm thì mới có ăn. Chỉ nhận được lương 1 lần trong 10 phút.')
+        await ctx.send('Có làm thì mới có ăn. Chỉ nhận được lương 1 lần trong 5 phút.')
 
 @bot.event
 async def on_member_join(member):

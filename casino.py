@@ -12,25 +12,26 @@ import random
 
 from database.databasehandler import *
 from main import bot
-from helper.Blackjack import Blackjack
+#from helper.Blackjack import Blackjack
 
 
 @bot.command()
-def startgamble(ctx):
+async def danhbac(ctx):
     userid = ctx.author.id
     if len(db.search(database.id == userid)) == 0:
-        db.insert({'id':userid, 'balance':0})
+        db.insert({'id':userid, 'balance':100})
         await ctx.send("Profile created.")
     else:
         await ctx.send("Profile existed.")
         
 @bot.command()
-@commands.cooldown(1, 600)
+@commands.cooldown(1, 300)
 async def claim(ctx):
     userid = ctx.author.id
 
     if len(db.search(database.id == userid)) == 0:
-        db.insert({'id':userid, 'balance':0})
+        await ctx.send('Profile không tồn tại. Tạo bằng `danhbac` trước.')
+        return
     
     # look for the user object
     user_db_obj = db.search(database.id == userid)[0]
@@ -54,8 +55,9 @@ async def gamble(ctx, amount=100):
 
     if len(db.search(database.id == userid)) == 0:
         db.insert({'id':userid, 'balance':0})
-        await ctx.send('Ở cái xã hội này phải chịu khó làm, chịu khó học hỏi, khắc có tiền. Nay không kiếm được nhiều thì kiếm được ít, mình tích tiểu thành đại, mình chưa có thì mình không được chơi bời. Mình chưa có thì mình đừng có ăn chơi lêu lổng, đừng có a dua a tòng, đàn đúm.\n     -anh Huấn - 2020.')
-    
+        await ctx.send('Profile không tồn tại. Tạo bằng `danhbac` trước.')
+        return
+
     # look for the user object
     user_db_obj = db.search(database.id == userid)[0]
     # extract the balance from the user object
@@ -89,7 +91,8 @@ async def balance(ctx):
     userid = ctx.author.id
 
     if len(db.search(database.id == userid)) == 0:
-        db.insert({'id':userid, 'balance':0})
+        await ctx.send('Profile không tồn tại. Tạo bằng `danhbac` trước.')
+        return
 
     # look for the user object
     user_db_obj = db.search(database.id == userid)[0]
@@ -160,6 +163,8 @@ async def leaderboard(ctx):
             username = 'Đức'
         if userid == 455655526156599306:
             username = 'Trí'
+        if userid == 550542731471224832:
+            username = 'Trang'
         if username is None:
             username = str(userid)
         
@@ -184,9 +189,12 @@ async def give(ctx, mentioned_user, amount):
     amount = float(amount)
 
     if len(db.search(database.id == mentioned_user.id)) == 0:
-        db.insert({'id':mentioned_user.id, 'balance':0})
+        await ctx.send('Profile không tồn tại. Tạo bằng `danhbac` trước.')
+        return
+
     if len(db.search(database.id == member.id)) == 0:
-        db.insert({'id':member.id, 'balance':0})
+        await ctx.send('Profile không tồn tại. Tạo bằng `danhbac` trước.')
+        return
     
     # look for the user object
     author_obj = db.search(database.id == member.id)[0]
@@ -224,8 +232,8 @@ async def slot(ctx, amount):
     userid = ctx.author.id
     amount = int(amount)
     if len(db.search(database.id == userid)) == 0:
-        db.insert({'id':userid, 'balance':0})
-        await ctx.send('Ở cái xã hội này phải chịu khó làm, chịu khó học hỏi, khắc có tiền. Nay không kiếm được nhiều thì kiếm được ít, mình tích tiểu thành đại, mình chưa có thì mình không được chơi bời. Mình chưa có thì mình đừng có ăn chơi lêu lổng, đừng có a dua a tòng, đàn đúm.\n     -anh Huấn - 2020.')
+        await ctx.send('Profile không tồn tại. Tạo bằng `danhbac` trước.')
+        return
 
     # look for the user object
     user_db_obj = db.search(database.id == userid)[0]
@@ -281,14 +289,14 @@ async def slot(ctx, amount):
         embed.set_footer(text="Số dư hiện tại: ${}".format(user_balance))
         await ctx.send(embed=embed)
 
-
+'''
 @bot.command()
-def bj(ctx):
+async def bj(ctx):
     userid = ctx.author.id
     amount = int(amount)
     if len(db.search(database.id == userid)) == 0:
-        db.insert({'id':userid, 'balance':0})
-        await ctx.send("Không có tiền mà đua đòi?")
+        await ctx.send('Profile không tồn tại. Tạo bằng `danhbac` trước.')
+        return
 
     # look for the user object
     user_db_obj = db.search(database.id == userid)[0]
@@ -297,3 +305,11 @@ def bj(ctx):
 
     if user_balance == 0 or amount>user_balance or amount <= 0:
         message = 'Không có tiền mà đòi đánh bạc? Người không chơi là ngưòi thắng.'
+
+    else:
+        game = Blackjack()
+        player_hand = game.get_player_hand()
+        dealer_hand = game.get_dealer_hand()
+
+        hidden_card = max(dealer_hand)
+'''

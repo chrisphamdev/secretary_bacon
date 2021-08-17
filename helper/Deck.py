@@ -5,6 +5,15 @@ class Card:
         self.value = value
         self.suit = suit
 
+    def __lt__(self, other):
+        return self.value < other.value
+    
+    def __gt__(self, other):
+        return self.value > other.value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
     def __str__(self):
         return '{} {}'.format(self.suit, self.value)
 

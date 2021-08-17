@@ -22,11 +22,13 @@ bot = commands.Bot(command_prefix=';')
 from basiccommands import *
 from archive import *
 from leaguecommands import *
-# from casino import *
-from stockgame import *
+from casino import *
+#from stockgame import *
 
 @bot.command()
 @commands.cooldown(1,3600)
 async def testing(ctx):
-    await ctx.send('this is being run from my pc')
+    userername = bot.get_user(ctx.author.id).name
+    await ctx.send(userername)
+
     
