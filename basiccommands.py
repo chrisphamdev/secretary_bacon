@@ -1,7 +1,7 @@
 # This module contains all basic commands and functionality of the bot
 
 import discord
-from discord.ext.commands import Bot
+from discord.ext.commands import Bot, has_permissions, MissingPermissions
 from discord.ext import commands, tasks
 import asyncio
 import time
@@ -65,3 +65,9 @@ async def dis(ctx, user):
 @bot.command()
 async def say(ctx, *, words):
     await ctx.send(words)
+
+@bot.command()
+@has_permissions(administrator=True)
+async def spam(ctx, *, message):
+    for i in range(10):
+        await ctx.send(message)
