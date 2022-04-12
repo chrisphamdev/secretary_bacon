@@ -58,9 +58,21 @@ async def quyetdinh(ctx, option1, option2):
 
 @bot.command()
 async def dis(ctx, user):
-    disrap = [f'Địt mẹ thằng {user}', f'{user}\'s mum is gay', f'{user}\'s mama is so fat she walked past the TV and I missed 3 episodes.', f'{user} ngu tới mức solo Yasuo thua Triều.']
+    disrap = [f'Địt mẹ {user}', f'{user} rác tới mức solo thua Benny', 
+        f'Người ta đội mũ bảo hiểm để bảo vệ não, nhưng riêng {user} không cần đội mũ bảo hiểm.',
+        f'{user} rác hơn cả Ornn của Bách',
+        f'Chó cứ sủa, người cứ đi. Người đi rồi {user} vẫn sủa.',
+        f'{user} rác hơn cả Blitz của Trí',
+        f'Nơi {user} thuộc về:', #https://images.news18.com/ibnlive/uploads/2021/08/windows.jpg
+        f'Khi buồn, {user} hãy nhớ tới QTV'] #https://memedaily.vn/storage/meme/co-thuc-luc-thua-moi-buon-khong-co-thuc-luc-ma-thua-thi-sao-phai-buon.jpg
+        
     option = random.randrange(0, len(disrap))
     await ctx.send(disrap[option])
+    if option == 6:
+        await ctx.send('https://images.news18.com/ibnlive/uploads/2021/08/windows.jpg')
+    if option == 7:
+        await ctx.send('https://memedaily.vn/storage/meme/co-thuc-luc-thua-moi-buon-khong-co-thuc-luc-ma-thua-thi-sao-phai-buon.jpg')
+        
   
 @bot.command()
 async def say(ctx, *, words):
