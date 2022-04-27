@@ -16,7 +16,7 @@ from discord.utils import get
 import time
 from tinydb import TinyDB, Query
 
-bot = commands.Bot(command_prefix=';')
+bot = commands.Bot(command_prefix='.')
 
 # Import the implemented functionalities from different modules
 from basiccommands import *

@@ -64,7 +64,13 @@ async def dis(ctx, user):
         f'Chó cứ sủa, người cứ đi. Người đi rồi {user} vẫn sủa.',
         f'{user} rác hơn cả Blitz của Trí',
         f'Nơi {user} thuộc về:', #https://images.news18.com/ibnlive/uploads/2021/08/windows.jpg
-        f'Khi buồn, {user} hãy nhớ tới QTV'] #https://memedaily.vn/storage/meme/co-thuc-luc-thua-moi-buon-khong-co-thuc-luc-ma-thua-thi-sao-phai-buon.jpg
+        f'Khi buồn, {user} hãy nhớ tới QTV', #https://memedaily.vn/storage/meme/co-thuc-luc-thua-moi-buon-khong-co-thuc-luc-ma-thua-thi-sao-phai-buon.jpg
+        f'https://cdn.discordapp.com/attachments/948390765267128331/948390865221615636/274997853_162298952810574_3432804555341767487_n.jpg',
+        f'{user} hơi non.',
+        f'Tôi **XIN** {user} đấy.'
+        f'https://cdn.discordapp.com/attachments/948390765267128331/948390880866353202/275133068_162298869477249_3695419714806402304_n.jpg',
+        f''
+        ] 
         
     option = random.randrange(0, len(disrap))
     await ctx.send(disrap[option])
@@ -83,3 +89,15 @@ async def say(ctx, *, words):
 async def spam(ctx, *, message):
     for i in range(10):
         await ctx.send(message)
+
+@bot.command()
+async def status(ctx, *, game_name):
+    await bot.change_presence(activity=discord.Game(name=game_name))
+
+@bot.command()
+async def lotto(ctx):
+    output = ''
+    for i in range(6):
+        output += str(random.randrange(1,41))
+        output += ' '
+    await ctx.send(output)

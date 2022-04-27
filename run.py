@@ -1,4 +1,4 @@
 from main import *
 
-token = 'NzYwMDAyNTY3ODc4MzQ0NzE1.X3FtjA.hxCOD7KVw0jJ67PCG36IvOnUQA8'
+token = 'ODk0ODUyNjI1OTM2MzA2MjA4.YVwCcw.B3ZGrWXi8V8rX2tBk0qUW6bMe5g'
 bot.run(token)
