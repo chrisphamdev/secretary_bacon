@@ -68,8 +68,7 @@ async def dis(ctx, user):
         f'https://cdn.discordapp.com/attachments/948390765267128331/948390865221615636/274997853_162298952810574_3432804555341767487_n.jpg',
         f'{user} hơi non.',
         f'Tôi **XIN** {user} đấy.'
-        f'https://cdn.discordapp.com/attachments/948390765267128331/948390880866353202/275133068_162298869477249_3695419714806402304_n.jpg',
-        f''
+        f'https://cdn.discordapp.com/attachments/948390765267128331/948390880866353202/275133068_162298869477249_3695419714806402304_n.jpg'
         ] 
         
     option = random.randrange(0, len(disrap))
@@ -87,7 +86,8 @@ async def say(ctx, *, words):
 @bot.command()
 @has_permissions(administrator=True)
 async def spam(ctx, *, message):
-    for i in range(10):
+    num_of_times = random.randrange(4,10)
+    for i in range(num_of_times):
         await ctx.send(message)
 
 @bot.command()
