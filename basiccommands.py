@@ -84,7 +84,6 @@ async def say(ctx, *, words):
     await ctx.send(words)
 
 @bot.command()
-@has_permissions()
 async def spam(ctx, *, message):
     num_of_times = random.randrange(4,10)
     for i in range(num_of_times):
