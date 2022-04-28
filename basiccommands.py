@@ -67,7 +67,7 @@ async def dis(ctx, user):
         f'Khi buồn, {user} hãy nhớ tới QTV', #https://memedaily.vn/storage/meme/co-thuc-luc-thua-moi-buon-khong-co-thuc-luc-ma-thua-thi-sao-phai-buon.jpg
         f'https://cdn.discordapp.com/attachments/948390765267128331/948390865221615636/274997853_162298952810574_3432804555341767487_n.jpg',
         f'{user} hơi non.',
-        f'Tôi **XIN** {user} đấy.'
+        f'Tôi **XIN** {user} đấy.',
         f'https://cdn.discordapp.com/attachments/948390765267128331/948390880866353202/275133068_162298869477249_3695419714806402304_n.jpg'
         ] 
         
@@ -84,7 +84,7 @@ async def say(ctx, *, words):
     await ctx.send(words)
 
 @bot.command()
-@has_permissions(administrator=True)
+@has_permissions()
 async def spam(ctx, *, message):
     num_of_times = random.randrange(4,10)
     for i in range(num_of_times):
