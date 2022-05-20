@@ -1,4 +1,3 @@
-"""
 import discord
 from discord.ext.commands import Bot
 from discord.ext import commands, tasks
@@ -7,81 +6,74 @@ import time
 from discord import client
 import random
 
-
 from database.databasehandler import *
-from stocksimulator.stocklookup import get_info
+from stocksimulator.stocklookup import *
 from main import bot
-from yahoo_fin import stock_info
-import yfinance as yf
-
-
-# decode the holdings from the database
-def decode_holdings(userid):
-    user_db_obj = dict(db.search(database.id == userid)[0])
-    if user_db_obj['holdings'] == '':
-        return {}
-    holdings = user_db_obj['holdings'][:-1].split(';')
-    holdings_dict = {}
-
-    for i in range(len(holdings)):
-        holdings_dict[holdings[i].split()[0]] = float(holdings[i].split()[1])
-
-    return holdings_dict
-
-def encode_holdings(holdings_dict):
-    output = ''
-    for item in holdings_dict:
-        output += '{} {};'.format(item, holdings_dict[item])
-    return output
-
-# calculate the total value of a person portfolio
-def calculate_capital(userid):
-    user_db_obj = dict(db.search(database.id == userid)[0])
-    holdings = decode_holdings(userid)
-
-    capital = user_db_obj['wallet']
-
-    if len(holdings) == 0:
-        return capital
-
-    for symbol in holdings:
-        current_price = stock_info.get_live_price(symbol)
-        capital += current_price*holdings[symbol]
-    return capital
-
+from  yahoo_fin import stock_info
 
 @bot.command()
-async def query(ctx, symbol):
-    stock_object = get_info(symbol)
-    values = ''
-    values += 'Current price :  {}\n'.format(stock_object.current_price)
-    embed=discord.Embed(title=stock_object.company_name, color=0x05d61e)
-    #embed.set_thumbnail(url=stock_object.url)
-    embed.add_field(name=stock_object.company_name, value=values, inline=False)
-    embed.set_footer(text="Retrieved from www.tradingview.com")
-    await ctx.send(embed=embed)
+async def startTrade(ctx):
+    print(ctx.author.id)
+    msg = create_trading_profile(ctx.author.id)
 
-@bot.command()
-async def stock_init(ctx):
-    userid = ctx.author.id
-    
-    if len(db.search(database.id == userid)) == 0:
-        db.insert({'id':userid, 'wallet':100000, 'holdings':''})
-        await ctx.send('Profile created.')
+    if msg == 'ID existed.':
+        await ctx.send('Profile đã tồn tại, không cần khởi tạo.')
     else:
-        await ctx.send('Profile existed.')
+        await ctx.send('Profile đã được khởi tạo. Chúc bạn may mắn.')
     
 @bot.command()
-async def balance(ctx):
-    user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
-    holdings = decode_holdings(ctx.author.id)
-    capital = user_db_obj['wallet']
+async def cash(ctx):
+    summary = get_summary(ctx.author.id)
+    if summary == 'User does not exist.':
+        await ctx.send('Profile không tồn tại. Khởi tạo bằng command `startTrade`.')
+    else:
+        await ctx.send('Bạn có $' + summary[0] + ' tiền mặt.')
+
+@bot.command()
+async def buy(ctx, symbol, amount):
+    msg = buy_stock(ctx.author.id, symbol, int(amount))
+    print(msg)
+    if msg == 'User does not exist.':
+        await ctx.send('Profile không tồn tại. Khởi tạo bằng command `startTrade`.')
+    elif msg == 'Insufficient balance.':
+        await ctx.send('Không đủ tiền. Hơi non.')
+    else:
+        await ctx.send('Đã mua ' + str(msg) + ' share ' + symbol.upper() + '.')
+
+
+@bot.command()
+async def sell(ctx, symbol, amount):
+    msg = sell_stock(ctx.author.id, symbol, int(amount))
+    if msg == 'User does not exist.':
+        await ctx.send('Profile không tồn tại. Khởi tạo bằng command `startTrade`.')
+    elif msg == 'Insufficient amount.':
+        await ctx.send('Không đủ chừng đó share để bán. Hơi non.')
+    elif msg == 'You don\'t own any share of this company.':
+        await ctx.send('Làm gì có mà bán? Xin đấy.')
+    else:
+        await ctx.send('Bán share thành công.')
+
+@bot.command()
+async def sellall(ctx, symbol):
+    msg = sell_all_stock(ctx.author.id, symbol)
+    if msg == 'User does not exist.':
+        await ctx.send('Profile không tồn tại. Khởi tạo bằng command `startTrade`.')
+    elif msg == 'You don\'t own any share of this company.':
+        await ctx.send('Làm gì có mà bán. Xin đấy.')
+    else:
+        await ctx.send('Bán share thành công.')
+
+@bot.command()
+async def summary(ctx):
+    summary = get_summary(ctx.author.id)
+    print(summary)
+    user_balance = float(summary[0])
+    holdings = summary[1]
+    capital = user_balance
 
     output = '```json\nPORTFOLIO SUMMARY\n\n'
     output += '{:<20}| {:<10} | {:<10} | {:<10}\n'.format('    Company name', '  Symbol', 'Share owned', 'Current value')
-    seperator = '-'*62
-    output += seperator + '\n'
-
+    output += '-'*62 + '\n'
     for symbol in holdings:
         company_name = yf.Ticker(symbol.upper()).info['longName']
         if len(company_name) >= 15:
@@ -93,87 +85,10 @@ async def balance(ctx):
         line = '{:<20}| {:<10} | {:<10.2f}  | {:<10.2f}\n'.format(company_name, symbol.upper(), holdings[symbol], current_value)
         output += line
     
-    output += seperator + '\n\n'
-    output += 'WALLET       : ${:.2f}\n'.format(user_db_obj['wallet'])
+    output += '-'*62 + '\n\n'
+    output += 'WALLET       : ${:.2f}\n'.format(user_balance)
     output += 'CAPITAL      : ${:.2f}\n'.format(capital, 2)
     output += 'TOTAL GAIN   : {}%'.format(round((capital/100000 - 1)*100))
     output += '```'
-    
     await ctx.send(output)
     
-@bot.command()
-async def buy(ctx, symbol, amount):
-    user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
-    amount_bought = round(float(amount),2)
-    service_fee = amount_bought*0.005
-
-    if amount_bought+service_fee > user_db_obj['wallet'] or amount_bought <= 0:
-        if amount_bought <= 0:
-            await ctx.send('Invalid argument')
-        else:
-            await ctx.send('Không có tiền mà còn đua đòi?')
-    else:
-        target_stock = get_info(symbol)
-        current_price = stock_info.get_live_price(symbol)
-        share_owned = round(amount_bought/target_stock.current_price,2)
-        new_balance = user_db_obj['wallet'] - amount_bought - service_fee
-        holdings = decode_holdings(ctx.author.id)
-
-        # check if user already owned this symbol
-        if symbol.upper() not in holdings:
-            holdings[symbol.upper()] = share_owned
-        else:
-            holdings[symbol.upper()] += share_owned
-
-        updated_holdings = encode_holdings(holdings)
-        db.update({'wallet':new_balance}, database.id == ctx.author.id)
-        db.update({'holdings':updated_holdings}, database.id == ctx.author.id)
-
-        await ctx.send('Đã mua {:.2f} share của công ty {}. Còn lại ${:.2f} tiền mặt.'.format(share_owned, target_stock.company_name, new_balance))
-
-@bot.command()
-async def sell(ctx, symbol, amount):
-    user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
-    amount_selling = round(float(amount), 2)
-
-    holdings = decode_holdings(ctx.author.id)
-
-    if symbol.upper() not in holdings:
-        await ctx.send('Làm đéo gì có mà bán?')
-    else:
-        target_stock = get_info(symbol)
-        owned_amount = target_stock.current_price * holdings[symbol.upper()]
-        if amount_selling > owned_amount:
-            await ctx.send('Làm đéo gì có mà bán?')
-        else:
-            remaining_amount = owned_amount - amount_selling
-            holdings[symbol.upper()] = remaining_amount/target_stock.current_price
-            updated_holdings = encode_holdings((holdings))
-            db.update({'holdings':updated_holdings}, database.id == ctx.author.id)
-            db.update({'wallet':user_db_obj['wallet']+amount_selling}, database.id == ctx.author.id)
-            await ctx.send('Đã bán ${:.2f}, tương đương {:.2f} share {}. Còn lại ${:.2f} tiền mặt'.format(amount_selling, amount_selling/target_stock.current_price, target_stock.symbol, user_db_obj['wallet']+amount_selling))
-
-@bot.command()
-async def sellall(ctx, symbol):
-    user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
-
-    holdings = decode_holdings(ctx.author.id)
-
-    if symbol.upper() not in holdings:
-        await ctx.send('Làm đéo gì có mà bán?')
-    else:
-        target_stock = get_info(symbol)
-        share_num = holdings[symbol.upper()]
-        amount_selling = share_num*target_stock.current_price
-        holdings.pop(symbol.upper())
-        new_balance = user_db_obj['wallet'] + amount_selling
-        await ctx.send('Đã bán ${:.2f}, tương đương {:.2f} share {}. Còn lại ${:.2f} tiền mặt'.format(amount_selling, share_num, target_stock.symbol, new_balance))
-        updated_holdings = encode_holdings((holdings))
-        db.update({'holdings':updated_holdings}, database.id == ctx.author.id)
-        db.update({'wallet':new_balance}, database.id == ctx.author.id)
-
-@bot.command()
-async def cash(ctx):
-    user_db_obj = dict(db.search(database.id == ctx.author.id)[0])
-    await ctx.send('Còn lại ${:.2f} tiền mặt'.format(user_db_obj['wallet']))
-"""

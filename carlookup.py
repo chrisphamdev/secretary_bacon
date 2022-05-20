@@ -19,7 +19,7 @@ def get_make_model_year(page):
 
     # obtain the year of the vehicle
     last_index_year = section_text.find('</a>')
-    year = section_text[last_index_year-4:last_index_year])
+    year = section_text[last_index_year-4:last_index_year]
 
     
 page = get_page('BZF512')

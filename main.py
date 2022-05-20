@@ -23,10 +23,9 @@ from basiccommands import *
 from archive import *
 from leaguecommands import *
 from casino import *
-#from stockgame import *
+from stockgame import *
 
 @bot.command()
-@commands.cooldown(1,3600)
 async def testing(ctx):
     userername = bot.get_user(ctx.author.id).name
     await ctx.send(userername)
