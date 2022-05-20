@@ -7,6 +7,7 @@ import asyncio
 import time
 from discord import client
 import random
+from carlookup import *
 
 from main import bot
 
@@ -100,3 +101,14 @@ async def lotto(ctx):
         output += str(random.randrange(1,41))
         output += ' '
     await ctx.send(output)
+
+@bot.command()
+async def plate(ctx, *, plate):
+    page_url, year, make, model, color, cc_rating, photo_url = plate_lookup(plate)
+    
+    embed=discord.Embed(title=plate.upper(), url=page_url, color=0x00ffd5)
+    embed.set_thumbnail(url=photo_url)
+    embed.add_field(name= f'{year} {color} {make} {model}', value="CC Rating: "+cc_rating+"cc", inline=False)
+    embed.set_footer(text="Data fetched from carjam.co.nz")
+    
+    await ctx.send(embed=embed)

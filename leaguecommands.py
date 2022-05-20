@@ -10,7 +10,10 @@ import random
 
 from helper.opgglookup import *
 from main import bot
+
+profile = get_profile('Chrispy Bacon')
     
+print(get_solo_rank(profile))
 @bot.command()
 async def rank_solo(ctx, *, username):
     profile = get_profile(username)
