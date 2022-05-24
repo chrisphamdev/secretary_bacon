@@ -15,20 +15,25 @@ tinydb
 bs4
 ```
 
-Install the modules by running the following commands in terminal:
+Install the required modules by running the following commands in terminal:
 
 ```
-pip install discord
-pip install asyncio
-pip install tinydb
-pip install bs4
+python3 -m venv venv
+source ./venv/bin/activate
+pip3 install -r -requirements.txt
 ```
 
-## Execution
+For Windows:
+```
+python -m venv venv
+./venv/scripts/activate
+pip install -r requirements.txt
+```
 
-**Running the application**
-
-From the *SECRETARY_BACON* directory, execute the file `run.py`
-
-
+## Running the bot
+From the command line, run
+```python3 run.py```
+or
+```python run.py``` 
+for Windows
  

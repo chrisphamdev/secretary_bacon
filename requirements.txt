@@ -1,0 +1,5 @@
+beautifulsoup4==4.11.1
+discord.py==1.7.3
+tinydb==4.5.2
+yahoo_fin==0.8.9.1
+yfinance==0.1.70

@@ -1,3 +1,4 @@
+'''
 # This module contain the league profile lookup functionality of the bot
 
 import discord
@@ -45,3 +46,4 @@ async def rank_solo(ctx, *, username):
     embed.add_field(name=ranked_solo_line, value=win_loss_line+winrate_line+comment, inline=True)
     embed.set_footer(text="Powered by Chris P Bacon")
     await ctx.send(embed=embed)
+'''

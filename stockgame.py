@@ -13,7 +13,6 @@ from  yahoo_fin import stock_info
 
 @bot.command()
 async def startTrade(ctx):
-    print(ctx.author.id)
     msg = create_trading_profile(ctx.author.id)
 
     if msg == 'ID existed.':
@@ -27,12 +26,11 @@ async def cash(ctx):
     if summary == 'User does not exist.':
         await ctx.send('Profile không tồn tại. Khởi tạo bằng command `startTrade`.')
     else:
-        await ctx.send('Bạn có $' + summary[0] + ' tiền mặt.')
+        await ctx.send('Bạn có $' + str(summary[0]) + ' tiền mặt.')
 
 @bot.command()
 async def buy(ctx, symbol, amount):
     msg = buy_stock(ctx.author.id, symbol, int(amount))
-    print(msg)
     if msg == 'User does not exist.':
         await ctx.send('Profile không tồn tại. Khởi tạo bằng command `startTrade`.')
     elif msg == 'Insufficient balance.':
@@ -66,7 +64,6 @@ async def sellall(ctx, symbol):
 @bot.command()
 async def summary(ctx):
     summary = get_summary(ctx.author.id)
-    print(summary)
     user_balance = float(summary[0])
     holdings = summary[1]
     capital = user_balance
