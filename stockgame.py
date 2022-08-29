@@ -88,4 +88,14 @@ async def summary(ctx):
     output += 'TOTAL GAIN   : {}%'.format(round((capital/100000 - 1)*100))
     output += '```'
     await ctx.send(output)
-    
+
+
+@bot.command()
+async def get_db_as_string(ctx):
+    db_as_string = str(get_holdings_db())
+    await ctx.send(str(get_holdings_db()))
+
+@bot.command()
+async def rewrite_db(ctx, *, new_db):
+    output = rewrite_db_from_str(new_db)
+    await ctx.send(output)
