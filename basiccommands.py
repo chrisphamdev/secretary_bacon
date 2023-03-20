@@ -8,6 +8,7 @@ import time
 from discord import client
 import random
 from carlookup import *
+from gpt import *
 
 from main import bot
 
@@ -112,3 +113,8 @@ async def plate(ctx, *, plate):
     embed.set_footer(text="Data fetched from carjam.co.nz")
     
     await ctx.send(embed=embed)
+
+@bot.command()
+async def gpt(ctx, *, prompt):
+    response = generate_response(prompt)
+    await ctx.send(response)
