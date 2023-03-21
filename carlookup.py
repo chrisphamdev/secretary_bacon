@@ -1,4 +1,4 @@
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 import urllib
 from bs4 import BeautifulSoup as soup
 import ssl
@@ -6,43 +6,27 @@ import ssl
 def get_page(plate):
     ssl._create_default_https_context = ssl._create_unverified_context
     page_url = 'https://www.carjam.co.nz/car/?plate=' + plate
-    client = urllib.request.urlopen(page_url)
-    profile_html = client.read()
-    client.close()
-    page_html_parsed = soup(profile_html, 'html.parser')
+    req = Request(
+        url=page_url,
+        headers={'User-Agent': 'Mozilla/5.0'}
+    )
+    webpage = urlopen(req).read()
+    page_html_parsed = soup(webpage, 'html.parser')
     return page_html_parsed
 
 def get_make_model_year(page):
     # obtain the section where make-model-year are located
-    section = page.findAll('div', {'class':'col-md-12'})
-    section_text = str(section)
-    
+    section = str(page.findAll('div', {'class':'report-section vehicle-section'})).split()
+    all_values = []
+    for char in section:
+        if 'class="value">' in char:
+            all_values += [char[14:-7]]
+    try:
+        all_values = all_values[:6]
+        year, make, model, color, submodel, car_type = all_values[0], all_values[1], all_values[2], all_values[3], all_values[4], all_values[5]
+    finally:
+        year, make, model, color = all_values[0], all_values[1], all_values[2], all_values[3]
 
-    # obtain the year of the vehicle
-    last_index_year = section_text.find('</a>')
-    year = section_text[last_index_year-4:last_index_year]
-    
-    # obtain the make of the vehicle
-    start_index_make = section_text.find('<nobr>')
-    end_index_make = section_text.find('</nobr>')
-    make = section_text[start_index_make+6:end_index_make]
-    make = make[0].upper() + make[1:].lower()
-    
-    # obtain the model of the vehicle
-    section_text = section_text[section_text.find('<span'):] #cut off the already obtained info
-    start_index_model = section_text.find('>') + 1
-    end_index_model = section_text.find('</span>')
-    model = section_text[start_index_model:end_index_model]
-    model = model[0].upper() + model[1:].lower()
-
-    # obtain the color of the vehicle
-    #cut off the already obtained info
-    section_text = section_text[end_index_model:] 
-    section_text = section_text[section_text.find('class="thin"'):]
-    color_start_index = section_text.find('<nobr>')
-    color_end_index = section_text.find('</nobr>')
-    color = section_text[color_start_index+6:color_end_index-7].strip()
-    
     # obtain the CC rating
     cc_rating_lookup = str(page.findAll('span', {'class':'value'}))
     cc_start_index = cc_rating_lookup.find('cc')
@@ -57,13 +41,13 @@ def get_make_model_year(page):
         photo_url = 'https:' + photo_url
 
     
-    return year, make, model, color, cc_rating, photo_url
+    return year, make, model, color, submodel, car_type, cc_rating, photo_url
     
 def plate_lookup(plate):
     page_url = 'https://www.carjam.co.nz/car/?plate=' + plate.lower()
     page = get_page(plate)
-    year, make, model, color, cc_rating, photo_url = get_make_model_year(page)
+    year, make, model, color, submodel, car_type, cc_rating, photo_url = get_make_model_year(page)
 
-    return page_url, year, make, model, color, cc_rating, photo_url
+    return year, make, model, color, submodel, car_type, cc_rating, photo_url, page_url
 
-
+print(plate_lookup('bzf512'))

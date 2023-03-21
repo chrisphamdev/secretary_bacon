@@ -105,16 +105,28 @@ async def lotto(ctx):
 
 @bot.command()
 async def plate(ctx, *, plate):
-    page_url, year, make, model, color, cc_rating, photo_url = plate_lookup(plate)
-    
+    year, make, model, color, submodel, car_type, cc_rating, photo_url, page_url = plate_lookup(plate)
+
     embed=discord.Embed(title=plate.upper(), url=page_url, color=0x00ffd5)
-    embed.set_thumbnail(url=photo_url)
-    embed.add_field(name= f'{year} {color} {make} {model}', value="CC Rating: "+cc_rating+"cc", inline=False)
+    if not 'upload-your-photo' in photo_url:
+        embed.set_thumbnail(url=photo_url)
+    embed.add_field(name=f'{year} {make} {model} {submodel}', value='', inline=False)
+    embed.add_field(name="Color", value=f'{color}', inline=True)
+    embed.add_field(name="CC Rating", value=f'{cc_rating}cc', inline=True)
+    if car_type != '':
+        embed.add_field(name="Type", value=f'{car_type}', inline=False)
     embed.set_footer(text="Data fetched from carjam.co.nz")
-    
+
     await ctx.send(embed=embed)
 
 @bot.command()
 async def gpt(ctx, *, prompt):
     response = generate_response(prompt)
     await ctx.send(response)
+
+@bot.command()
+async def clown(ctx, *, prompt):
+    response = generate_sarcastic_response(prompt)
+    await ctx.send(response)
+
+    
