@@ -8,7 +8,6 @@ import time
 from discord import client
 import random
 from carlookup import *
-from gpt import *
 
 from main import bot
 
@@ -119,14 +118,3 @@ async def plate(ctx, *, plate):
 
     await ctx.send(embed=embed)
 
-@bot.command()
-async def gpt(ctx, *, prompt):
-    response = generate_response(prompt)
-    await ctx.send(response)
-
-@bot.command()
-async def clown(ctx, *, prompt):
-    response = generate_sarcastic_response(prompt)
-    await ctx.send(response)
-
-    
