@@ -1,4 +1,5 @@
+import getpass
 from main import *
 
-token = ''
+token = getpass.getpass('Discord bot token: ')
 bot.run(token)
