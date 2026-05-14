@@ -22,6 +22,7 @@ bot = commands.Bot(command_prefix='.')
 from basiccommands import *
 from archive import *
 from stockgame import *
+from pokergame import *
 
 @bot.command()
 async def testing(ctx):
