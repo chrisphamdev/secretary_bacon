@@ -171,13 +171,15 @@ async def deal_cmd(ctx):
 
     dm_fails = []
     for pid in game.players:
-        member = ctx.guild.get_member(pid)
-        if member:
-            hand = ' '.join(card_display(c) for c in game.hole_cards[pid])
-            try:
-                await member.send(f"Your hole cards for the game in **#{ctx.channel.name}**:\n**{hand}**")
-            except discord.Forbidden:
-                dm_fails.append(game.names[pid])
+        user = ctx.guild.get_member(pid) or bot.get_user(pid)
+        if not user:
+            dm_fails.append(game.names[pid])
+            continue
+        hand = ' '.join(card_display(c) for c in game.hole_cards[pid])
+        try:
+            await user.send(f"Your hole cards for the game in **#{ctx.channel.name}**:\n**{hand}**")
+        except discord.Forbidden:
+            dm_fails.append(game.names[pid])
 
     if dm_fails:
         await ctx.send(
