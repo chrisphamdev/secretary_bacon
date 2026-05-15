@@ -121,19 +121,3 @@ async def cleanup_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         await ctx.send("Usage: `.cleanup <number>`")
 
-@bot.command()
-async def plate(ctx, *, plate):
-    year, make, model, color, submodel, car_type, cc_rating, photo_url, page_url = plate_lookup(plate)
-
-    embed=discord.Embed(title=plate.upper(), url=page_url, color=0x00ffd5)
-    if not 'upload-your-photo' in photo_url:
-        embed.set_thumbnail(url=photo_url)
-    embed.add_field(name=f'{year} {make} {model} {submodel}', value='', inline=False)
-    embed.add_field(name="Color", value=f'{color}', inline=True)
-    embed.add_field(name="CC Rating", value=f'{cc_rating}cc', inline=True)
-    if car_type != '':
-        embed.add_field(name="Type", value=f'{car_type}', inline=False)
-    embed.set_footer(text="Data fetched from carjam.co.nz")
-
-    await ctx.send(embed=embed)
-
