@@ -103,6 +103,25 @@ async def lotto(ctx):
     await ctx.send(output)
 
 @bot.command()
+@has_permissions(manage_messages=True)
+async def cleanup(ctx, amount: int):
+    if amount < 1:
+        await ctx.send("Please provide a number greater than 0.")
+        return
+    # +1 to include the .cleanup command message itself
+    deleted = await ctx.channel.purge(limit=amount + 1)
+    confirm = await ctx.send(f"Deleted {len(deleted) - 1} message(s).")
+    await asyncio.sleep(5)
+    await confirm.delete()
+
+@cleanup.error
+async def cleanup_error(ctx, error):
+    if isinstance(error, MissingPermissions):
+        await ctx.send("You need the **Manage Messages** permission to use this command.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("Usage: `.cleanup <number>`")
+
+@bot.command()
 async def plate(ctx, *, plate):
     year, make, model, color, submodel, car_type, cc_rating, photo_url, page_url = plate_lookup(plate)
 
