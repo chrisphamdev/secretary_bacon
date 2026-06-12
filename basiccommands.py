@@ -7,7 +7,6 @@ import asyncio
 import time
 from discord import client
 import random
-from carlookup import *
 
 from main import bot
 

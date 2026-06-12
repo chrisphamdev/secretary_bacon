@@ -21,7 +21,6 @@ bot = commands.Bot(command_prefix='.')
 # Import the implemented functionalities from different modules
 from basiccommands import *
 from archive import *
-from stockgame import *
 from pokergame import *
 from worldcup import *
 

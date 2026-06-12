@@ -20,7 +20,6 @@ Prompts for two secrets on startup (both hidden via `getpass`):
 | `main.py` | Bot instance + imports all feature modules |
 | `basiccommands.py` | Misc commands: ping, lotto, cleanup, dis, etc. |
 | `archive.py` | Reaction-role system (hardcoded message/role IDs) |
-| `stockgame.py` | Stock trading simulator using yahoo_fin / yfinance |
 | `pokergame.py` | Texas Hold'em poker game, one game per channel |
 | `worldcup.py` | World Cup 2026 fantasy league (predictions + leaderboard) |
 | `helper/poker.py` | Pure poker logic: hand evaluation, game state |
@@ -36,8 +35,6 @@ Prompts for two secrets on startup (both hidden via `getpass`):
 discord.py==1.7.3
 tinydb==4.5.2
 aiohttp>=3.8.0        # already a transitive dep of discord.py
-yahoo_fin==0.8.9.1
-yfinance==0.1.70
 beautifulsoup4==4.11.1
 ```
 
@@ -70,6 +67,4 @@ Flag emoji lookup uses `FLAG_TO_TEAM` in `worldcup.py` (ISO alpha-2 → team nam
 
 ## Known issues / quirks
 
-- `basiccommands.py` imports `from carlookup import *` — that file no longer exists. The import will fail on startup unless removed or the file is restored.
 - `archive.py` reaction-role handlers contain hardcoded message and role IDs specific to the original server.
-- The stock game (`stockgame.py`) uses `yf.Ticker` without importing `yfinance as yf` — the `summary` command will error.
