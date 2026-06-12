@@ -4,11 +4,13 @@ import json
 import os
 import aiohttp
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 
 PREDICTIONS_FILE = 'database/wc_predictions.json'
 CACHE_FILE = 'database/wc_match_cache.json'
 API_BASE = 'https://api.football-data.org/v4'
 COMPETITION = 'WC'
+NZ_TZ = ZoneInfo('Pacific/Auckland')
 
 
 def _load_json(path, default):
@@ -184,8 +186,8 @@ def _format_match_line(match):
     date_str = match.get('utcDate', '')
 
     try:
-        dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-        date_display = dt.strftime('%b %d %H:%M UTC')
+        dt = datetime.fromisoformat(date_str.replace('Z', '+00:00')).astimezone(NZ_TZ)
+        date_display = dt.strftime('%b %d %H:%M %Z')
     except Exception:
         date_display = date_str
 
@@ -346,28 +348,25 @@ async def wcpredict_cmd(ctx, *, args: str):
 
 @bot.command(name='wcmatches')
 async def wcmatches_cmd(ctx, filter_arg: str = 'upcoming'):
-    """Show World Cup matches. Usage: .wcmatches [upcoming|today|live|recent]"""
+    """Show World Cup matches. Usage: .wcmatches [live|recent]"""
     api_key = get_api_key()
     if not api_key:
         await ctx.send('No API key set. Add `FOOTBALL_API_KEY` to your environment variables.')
         return
 
-    today = datetime.now(timezone.utc)
+    now_nz = datetime.now(NZ_TZ)
     status_filter = None
     date_from = None
     date_to = None
 
     if filter_arg == 'live':
         status_filter = 'IN_PLAY'
-    elif filter_arg == 'today':
-        date_from = today.strftime('%Y-%m-%d')
-        date_to = today.strftime('%Y-%m-%d')
     elif filter_arg == 'recent':
-        date_from = (today - timedelta(days=3)).strftime('%Y-%m-%d')
-        date_to = today.strftime('%Y-%m-%d')
+        date_from = (now_nz - timedelta(days=3)).strftime('%Y-%m-%d')
+        date_to = now_nz.strftime('%Y-%m-%d')
     else:
-        date_from = today.strftime('%Y-%m-%d')
-        date_to = (today + timedelta(days=7)).strftime('%Y-%m-%d')
+        date_from = now_nz.strftime('%Y-%m-%d')
+        date_to = (now_nz + timedelta(days=1)).strftime('%Y-%m-%d')
 
     async with aiohttp.ClientSession() as session:
         matches = await fetch_competition_matches(session, api_key, date_from, date_to, status_filter)
@@ -380,8 +379,9 @@ async def wcmatches_cmd(ctx, filter_arg: str = 'upcoming'):
         return
 
     lines = [_format_match_line(m) for m in matches[:15]]
+    label = 'Today & Tomorrow' if filter_arg == 'upcoming' else filter_arg.title()
     embed = discord.Embed(
-        title=f'World Cup 2026 — {filter_arg.title()} Matches',
+        title=f'World Cup 2026 — {label} Matches',
         description='\n'.join(lines),
         color=0x1a6b3c,
     )
@@ -508,8 +508,7 @@ async def wchelp_cmd(ctx):
     embed.add_field(
         name='Commands',
         value=(
-            '`.wcmatches` — Upcoming matches (next 7 days)\n'
-            '`.wcmatches today` — Today\'s matches\n'
+            '`.wcmatches` — Today & tomorrow\'s matches (NZ time)\n'
             '`.wcmatches live` — Live matches right now\n'
             '`.wcmatches recent` — Last 3 days of results\n'
             '`.wcpredict <id> <score>` — Submit or update a prediction\n'

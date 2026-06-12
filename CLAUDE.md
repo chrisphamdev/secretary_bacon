@@ -52,7 +52,7 @@ Commands (all prefixed with `.`):
 
 | Command | Description |
 |---|---|
-| `.wcmatches [upcoming\|today\|live\|recent]` | Browse fixtures |
+| `.wcmatches [live\|recent]` | Browse fixtures (default: today & tomorrow, NZ time) |
 | `.wcpredict <match_id> 2-1` | Predict by match ID |
 | `.wcpredict 🇳🇿 🇦🇺 2-1` | Predict by flag emojis (`:flag_nz:` style) |
 | `.mypicks` | Your predictions + current points |
