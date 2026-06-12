@@ -23,6 +23,7 @@ from basiccommands import *
 from archive import *
 from stockgame import *
 from pokergame import *
+from worldcup import *
 
 @bot.command()
 async def testing(ctx):
