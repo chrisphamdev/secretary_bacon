@@ -204,11 +204,18 @@ def _format_match_line(match):
 async def _refresh_cache_for_preds(predictions, api_key):
     cache = load_cache()
     match_ids = list(set(p['match_id'] for p in predictions))
+
+    # One-time migration: finished entries cached before the stage field was added
+    # are all group stage matches — stamp them without an API call.
+    for entry in cache.values():
+        if entry.get('status') == 'FINISHED' and 'stage' not in entry:
+            entry['stage'] = 'GROUP_STAGE'
+
     async with aiohttp.ClientSession() as session:
         for mid in match_ids:
             key = str(mid)
-            # Re-fetch if not yet finished, or if stage is missing from an older cache entry
-            if key in cache and cache[key]['status'] == 'FINISHED' and 'stage' in cache[key]:
+            # Finished matches are fully resolved — skip them.
+            if key in cache and cache[key]['status'] == 'FINISHED':
                 continue
             match = await fetch_match_data(session, mid, api_key)
             if not match:
