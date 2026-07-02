@@ -207,7 +207,8 @@ async def _refresh_cache_for_preds(predictions, api_key):
     async with aiohttp.ClientSession() as session:
         for mid in match_ids:
             key = str(mid)
-            if key in cache and cache[key]['status'] == 'FINISHED':
+            # Re-fetch if not yet finished, or if stage is missing from an older cache entry
+            if key in cache and cache[key]['status'] == 'FINISHED' and 'stage' in cache[key]:
                 continue
             match = await fetch_match_data(session, mid, api_key)
             if not match:
@@ -216,6 +217,7 @@ async def _refresh_cache_for_preds(predictions, api_key):
                 'status': match.get('status', 'UNKNOWN'),
                 'home_team': match['homeTeam']['name'],
                 'away_team': match['awayTeam']['name'],
+                'stage': match.get('stage', 'GROUP_STAGE'),
             }
             if match.get('status') == 'FINISHED':
                 score = match.get('score', {}).get('fullTime', {})
@@ -465,30 +467,58 @@ async def mypicks_cmd(ctx):
         cache = await _refresh_cache_for_preds(user_preds, api_key)
 
     total = 0
-    lines = []
+    group_count = group_pts = group_exact = group_result = group_pending = 0
+    knockout_lines = []
+
     for pred in user_preds:
         mid = str(pred['match_id'])
         pred_score = f"{pred['home_score']}-{pred['away_score']}"
         entry = cache.get(mid, {})
+        is_group = entry.get('stage', 'GROUP_STAGE') == 'GROUP_STAGE'
         home_team = entry.get('home_team', f'Match {mid}')
         away_team = entry.get('away_team', '')
+
+        if is_group:
+            group_count += 1
 
         if entry.get('status') == 'FINISHED':
             ah, aa = entry['home'], entry['away']
             pts = calculate_points(pred['home_score'], pred['away_score'], ah, aa)
             total += pts
-            icon = '🎯' if pts == 2 else ('✅' if pts == 1 else '❌')
-            lines.append(f'{icon} **{home_team} vs {away_team}** — pred: {pred_score} | actual: {ah}-{aa} | **{pts}pt**')
+            if is_group:
+                group_pts += pts
+                if pts == 2:
+                    group_exact += 1
+                elif pts == 1:
+                    group_result += 1
+            else:
+                icon = '🎯' if pts == 2 else ('✅' if pts == 1 else '❌')
+                knockout_lines.append(f'{icon} **{home_team} vs {away_team}** — pred: {pred_score} | actual: {ah}-{aa} | **{pts}pt**')
         else:
             status_label = entry.get('status', 'UNKNOWN')
-            lines.append(f'⏳ **{home_team} vs {away_team}** — pred: {pred_score} | [{status_label}]')
+            if is_group:
+                group_pending += 1
+            else:
+                knockout_lines.append(f'⏳ **{home_team} vs {away_team}** — pred: {pred_score} | [{status_label}]')
 
     embed = discord.Embed(
         title=f"{ctx.author.display_name}'s World Cup Picks",
-        description='\n'.join(lines),
         color=0x3498db,
     )
-    embed.set_footer(text=f'Total points: {total}  •  🎯 exact (2pt)  ✅ result (1pt)  ❌ miss (0pt)')
+
+    if group_count:
+        group_summary = f'{group_pts} pts — {group_exact}🎯 {group_result}✅'
+        if group_pending:
+            group_summary += f' • {group_pending} pending'
+        embed.add_field(name=f'Group Stage ({group_count} predictions)', value=group_summary, inline=False)
+
+    if knockout_lines:
+        embed.add_field(name='Knockout Stage', value='\n'.join(knockout_lines), inline=False)
+
+    if not group_count and not knockout_lines:
+        embed.description = 'No predictions yet.'
+
+    embed.set_footer(text=f'Total: {total} pts  •  🎯 exact (2pt)  ✅ result (1pt)  ❌ miss (0pt)')
     await ctx.send(embed=embed)
 
 
