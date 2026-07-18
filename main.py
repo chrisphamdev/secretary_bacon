@@ -12,6 +12,7 @@ import time
 from discord import client
 import logging
 import random
+import traceback
 from discord.utils import get
 import time
 from tinydb import TinyDB, Query
@@ -28,5 +29,16 @@ from worldcup import *
 async def testing(ctx):
     userername = bot.get_user(ctx.author.id).name
     await ctx.send(userername)
+
+
+@bot.event
+async def on_command_error(ctx, error):
+    # Without this, command exceptions only print to the console (or are
+    # swallowed entirely), so a failing command just leaves the bot
+    # "typing..." with nothing sent and no visible error.
+    if isinstance(error, commands.CommandNotFound):
+        return
+    traceback.print_exception(type(error), error, error.__traceback__)
+    await ctx.send(f'⚠️ Command failed: `{error}`')
 
 

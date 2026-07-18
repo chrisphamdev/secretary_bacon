@@ -147,6 +147,25 @@ def _parse_score(score_str):
     return int(parts[0]), int(parts[1])
 
 
+def _chunk_lines(lines, limit=1024):
+    """Group lines into strings that each stay under Discord's per-field char limit."""
+    chunks = []
+    current = []
+    current_len = 0
+    for line in lines:
+        added_len = len(line) + (1 if current else 0)  # +1 for the joining '\n'
+        if current and current_len + added_len > limit:
+            chunks.append('\n'.join(current))
+            current = [line]
+            current_len = len(line)
+        else:
+            current.append(line)
+            current_len += added_len
+    if current:
+        chunks.append('\n'.join(current))
+    return chunks
+
+
 def calculate_points(pred_home, pred_away, actual_home, actual_away):
     if pred_home == actual_home and pred_away == actual_away:
         return 2
@@ -519,8 +538,9 @@ async def mypicks_cmd(ctx):
             group_summary += f' • {group_pending} pending'
         embed.add_field(name=f'Group Stage ({group_count} predictions)', value=group_summary, inline=False)
 
-    if knockout_lines:
-        embed.add_field(name='Knockout Stage', value='\n'.join(knockout_lines), inline=False)
+    for i, chunk in enumerate(_chunk_lines(knockout_lines)):
+        name = 'Knockout Stage' if i == 0 else 'Knockout Stage (cont.)'
+        embed.add_field(name=name, value=chunk, inline=False)
 
     if not group_count and not knockout_lines:
         embed.description = 'No predictions yet.'
